@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NAV_ITEMS } from "@/lib/constants";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export function Sidebar() {
   return (
@@ -28,6 +29,9 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
+      <div className="mt-auto pt-6">
+        <LogoutButton />
+      </div>
     </aside>
   );
 }

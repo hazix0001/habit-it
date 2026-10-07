@@ -7,9 +7,17 @@ export function LandingNav() {
       <Link href="/" className="font-pixel text-sm" aria-label="Habit It home">
         HABIT&nbsp;IT
       </Link>
-      <Link href="/dashboard">
-        <PixelButton variant="secondary">VIEW DEMO</PixelButton>
-      </Link>
+      <nav className="flex items-center gap-3" aria-label="Account">
+        <Link
+          href="/login"
+          className="text-sm font-extrabold underline opacity-80"
+        >
+          LOG IN
+        </Link>
+        <Link href="/dashboard">
+          <PixelButton variant="secondary">VIEW DEMO</PixelButton>
+        </Link>
+      </nav>
     </header>
   );
 }

@@ -1,7 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Download, Moon, Sun, Monitor, Upload, Trash2, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Download, Moon, Sun, Monitor, Upload, Trash2, User, LogOut, KeyRound } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { useSettings, type Appearance, type PixelTheme } from "@/store/settings";
 import {
   backupFileName,
@@ -28,10 +31,26 @@ const THEMES: { value: PixelTheme; label: string; desc: string }[] = [
 ];
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { ready, settings, update } = useSettings();
   const [status, setStatus] = useState("");
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setAccountEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  async function logout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   if (!ready) {
     return (
@@ -249,12 +268,25 @@ export default function SettingsPage() {
 
       <PixelCard title="ACCOUNT" className="mb-5">
         <p className="text-sm font-bold">
-          Signed in as <span className="font-black">Guest</span> (local only)
+          Signed in as{" "}
+          <span className="font-black">{accountEmail ?? "…"}</span>
         </p>
         <p className="mt-1 text-xs font-bold opacity-60">
-          MVP build: all data stays in this browser. Real accounts arrive
-          later — your export file will carry over.
+          Your login is secured by Supabase. Habit data still lives in this
+          browser for now.
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link href="/reset-password">
+            <PixelButton variant="secondary">
+              <KeyRound size={16} strokeWidth={3} aria-hidden="true" />
+              CHANGE PASSWORD
+            </PixelButton>
+          </Link>
+          <PixelButton variant="secondary" onClick={logout}>
+            <LogOut size={16} strokeWidth={3} aria-hidden="true" />
+            LOG OUT
+          </PixelButton>
+        </div>
       </PixelCard>
     </>
   );
