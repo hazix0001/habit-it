@@ -13,23 +13,27 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (code) {
-    const supabaseResponse = NextResponse.redirect(`${origin}${next}`);
-    const { url, key } = getSupabaseEnv();
-    const supabase = createServerClient(url, key, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+    try {
+      const supabaseResponse = NextResponse.redirect(`${origin}${next}`);
+      const { url, key } = getSupabaseEnv();
+      const supabase = createServerClient(url, key, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options),
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
-        },
-      },
-    });
+      });
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return supabaseResponse;
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) return supabaseResponse;
+    } catch {
+      // Misconfigured server (e.g. missing env vars) — fall through to login.
+    }
   }
 
   return NextResponse.redirect(`${origin}/login?error=link-expired`);

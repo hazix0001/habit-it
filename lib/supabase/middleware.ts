@@ -17,7 +17,16 @@ const GUEST_ONLY = ["/login", "/signup", "/forgot-password"];
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const { url, key } = getSupabaseEnv();
+  // Never crash middleware: if Supabase env vars are missing (e.g. not yet
+  // set on Vercel), let the request through instead of throwing a 500.
+  let env: { url: string; key: string };
+  try {
+    env = getSupabaseEnv();
+  } catch {
+    return supabaseResponse;
+  }
+
+  const { url, key } = env;
   const supabase = createServerClient(url, key, {
     cookies: {
       getAll() {
